@@ -62,7 +62,6 @@ class TestServer {
   }
 
   _onData(data) {
-    console.log('hahahahahaha');
     debug('recv', data);
   }
 
