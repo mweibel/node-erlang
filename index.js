@@ -8,10 +8,10 @@ let os = require('os');
 let net = require('net');
 let EventEmitter = require('events').EventEmitter;
 let debug = require('debug')('node-erlang');
-let constants = require('./protocol/constants');
-let crypto = require('./protocol/crypto');
-let encoder = require('./protocol/encoder');
-let decoder = require('./protocol/decoder');
+let constants = require('./handshake/constants');
+let crypto = require('./handshake/crypto');
+let encoder = require('./handshake/encoder');
+let decoder = require('./handshake/decoder');
 
 /**
  * A Server instance can handle one connection to an Erlang node.
@@ -56,7 +56,7 @@ class Server extends EventEmitter {
   }
 
   _send(buf) {
-    debug('> %s', buf);
+    debug('> %s', buf.inspect());
     this.conn.write(encoder.messageWrapper(buf));
   }
 
@@ -77,7 +77,7 @@ class Server extends EventEmitter {
    * @private
    */
   _onData(buf) {
-    debug('< %s', buf);
+    debug('< %s', buf.inspect());
     try {
       this['_handle' + this.state](buf);
     } catch(e) {
@@ -127,7 +127,18 @@ class Server extends EventEmitter {
    */
   _handleWaitForChallengeAck(buf) {
     decoder.recvChallengeAck(buf, this.challenge, this.cookie);
+    this.state = 'Connected';
     this.emit('connect');
+  }
+
+  /**
+   * As soon as the handshake is complete, the protocol changes to be slightly different.
+   * This function Handles the connected protocol.
+   * @param {Buffer} buf
+   * @private
+   */
+  _handleConnected(buf) {
+
   }
 
   /**
