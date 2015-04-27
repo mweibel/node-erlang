@@ -33,7 +33,7 @@ function messageWrapper(req) {
 exports.sendName = function sendName(version, fullNodeName) {
   let buf = new Buffer(7 + Buffer.byteLength(fullNodeName));
   let offset = 0;
-  buf.writeUInt8('n'.charCodeAt(0), offset);
+  buf.write('n', offset);
   offset += 1;
   buf.writeUInt16BE(version, offset);
   offset += 2;

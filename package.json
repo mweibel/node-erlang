@@ -10,7 +10,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "test": "epmd -daemon && node -harmony_classes ./node_modules/.bin/_mocha test",
+    "test": "node -harmony_classes ./node_modules/.bin/_mocha test",
     "test-coveralls": "node -harmony_classes ./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
   },
   "keywords": [
@@ -29,7 +29,8 @@
     "eslint": "^0.18.0",
     "istanbul": "^0.3.11",
     "mocha": "^2.2.1",
-    "mocha-lcov-reporter": "0.0.2"
+    "mocha-lcov-reporter": "0.0.2",
+    "sinon": "^1.14.1"
   },
   "dependencies": {
     "epmd-client": "0.0.1"
