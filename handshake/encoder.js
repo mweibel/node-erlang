@@ -12,15 +12,16 @@ let crypto = require('./crypto');
  *
  * @param {Buffer} req
  * @returns {Buffer}
+ * @private
  */
-exports.messageWrapper = function messageWrapper(req) {
+function messageWrapper(req) {
   let baseLength = 2;
   let buf = new Buffer(baseLength + req.length);
   buf.writeUInt16BE(req.length, 0);
-  req.copy(buf, 2, 0);
+  req.copy(buf, baseLength, 0);
 
   return buf;
-};
+}
 
 /**
  * Sends the node name & capabilities & challenge
@@ -57,7 +58,7 @@ exports.sendName = function sendName(version, fullNodeName) {
   offset += 4;
   buf.write(fullNodeName, offset);
 
-  return buf;
+  return messageWrapper(buf);
 };
 
 /**
@@ -72,7 +73,7 @@ exports.sendStatus = function sendStatus(status) {
   buf.write('s', offset);
   offset += 1;
   buf.write(status, offset);
-  return buf;
+  return messageWrapper(buf);
 };
 
 /**
@@ -89,7 +90,7 @@ exports.sendChallenge = function sendChallenge(nameMessageBuf, nodeName) {
   offset += 4;
   buf.write(nodeName, offset);
 
-  return Buffer.concat([nameMessageBuf, buf]);
+  return messageWrapper(Buffer.concat([nameMessageBuf, buf]));
 };
 
 /**
@@ -110,5 +111,5 @@ exports.sendChallengeReply = function sendChallengeReply(recvChallenge, challeng
   buf.writeUInt32BE(challenge, offset);
   offset += 4;
   d.copy(buf, offset);
-  return buf;
+  return messageWrapper(buf);
 };

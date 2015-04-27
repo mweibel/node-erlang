@@ -8,10 +8,15 @@ let os = require('os');
 let net = require('net');
 let EventEmitter = require('events').EventEmitter;
 let debug = require('debug')('node-erlang');
-let constants = require('./handshake/constants');
+let send = require('debug')('node-erlang:send');
+let recv = require('debug')('node-erlang:recv');
+let handshakeConstants = require('./handshake/constants');
 let crypto = require('./handshake/crypto');
-let encoder = require('./handshake/encoder');
-let decoder = require('./handshake/decoder');
+let handshakeEncoder = require('./handshake/encoder');
+let handshakeDecoder = require('./handshake/decoder');
+let encoder = require('./protocol/encoder');
+let decoder = require('./protocol/decoder');
+let constants = require('./protocol/constants');
 
 /**
  * A Server instance can handle one connection to an Erlang node.
@@ -56,8 +61,8 @@ class Server extends EventEmitter {
   }
 
   _send(buf) {
-    debug('> %s', buf.inspect());
-    this.conn.write(encoder.messageWrapper(buf));
+    send('> %s', buf.inspect());
+    this.conn.write(buf);
   }
 
   /**
@@ -68,7 +73,7 @@ class Server extends EventEmitter {
     debug('Connected to %s:%s', this.host, this.port);
 
     debug('Initiating handshake, sending nodeName.');
-    this._send(encoder.sendName(constants.VERSION, this.fullNodeName));
+    this._send(handshakeEncoder.sendName(handshakeConstants.VERSION, this.fullNodeName));
   }
 
   /**
@@ -77,7 +82,7 @@ class Server extends EventEmitter {
    * @private
    */
   _onData(buf) {
-    debug('< %s', buf.inspect());
+    recv('< %s', buf.inspect());
     try {
       this['_handle' + this.state](buf);
     } catch(e) {
@@ -95,7 +100,7 @@ class Server extends EventEmitter {
    */
   _handleWaitForStatus(buf) {
     // will throw an error if status doesn't begin with 'ok'
-    let status = decoder.recvStatus(buf);
+    let status = handshakeDecoder.recvStatus(buf);
     if(status === 'ok' || status === 'ok_simultaneous') {
       this.state = 'WaitForChallenge';
     } else {
@@ -111,11 +116,11 @@ class Server extends EventEmitter {
    * @private
    */
   _handleWaitForChallenge(buf) {
-    let obj = decoder.recvChallenge(buf);
+    let obj = handshakeDecoder.recvChallenge(buf);
     debug('Received Challenge reply: %j', obj);
 
     this.state = 'WaitForChallengeAck';
-    this._send(encoder.sendChallengeReply(obj.challenge, this.challenge, this.cookie));
+    this._send(handshakeEncoder.sendChallengeReply(obj.challenge, this.challenge, this.cookie));
   }
 
   /**
@@ -126,7 +131,7 @@ class Server extends EventEmitter {
    * @private
    */
   _handleWaitForChallengeAck(buf) {
-    decoder.recvChallengeAck(buf, this.challenge, this.cookie);
+    handshakeDecoder.recvChallengeAck(buf, this.challenge, this.cookie);
     this.state = 'Connected';
     this.emit('connect');
   }
@@ -138,7 +143,12 @@ class Server extends EventEmitter {
    * @private
    */
   _handleConnected(buf) {
-
+    let msg = decoder.decode(buf);
+    switch(msg.type) {
+      case constants.TYPE_KEEPALIVE:
+        this._send(encoder.sendKeepAlive());
+        break;
+    }
   }
 
   /**
