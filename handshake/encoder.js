@@ -22,6 +22,9 @@ function messageWrapper(req) {
 
   return buf;
 }
+if(process.env.NODE_ENV === 'test') {
+  exports.messageWrapper = messageWrapper;
+}
 
 /**
  * Sends the node name & capabilities & challenge
@@ -80,17 +83,17 @@ exports.sendStatus = function sendStatus(status) {
  * If the status was ok or ok_simultaneous,
  * the handshake continues with B sending A another message, the challenge.
  *
- * @param {Buffer} nameMessageBuf
  * @param {String} nodeName
+ * @returns {Buffer}
  */
-exports.sendChallenge = function sendChallenge(nameMessageBuf, nodeName) {
+exports.sendChallenge = function sendChallenge(nodeName) {
   let buf = new Buffer(4 + Buffer.byteLength(nodeName));
   let offset = 0;
   buf.writeUInt32BE(crypto.generateChallenge(), offset);
   offset += 4;
   buf.write(nodeName, offset);
 
-  return messageWrapper(Buffer.concat([nameMessageBuf, buf]));
+  return messageWrapper(buf);
 };
 
 /**
@@ -110,6 +113,25 @@ exports.sendChallengeReply = function sendChallengeReply(recvChallenge, challeng
   offset += 1;
   buf.writeUInt32BE(challenge, offset);
   offset += 4;
+  d.copy(buf, offset);
+  return messageWrapper(buf);
+};
+
+/**
+ * B checks that the digest received from A is correct
+ * and generates a digest from the challenge received from A.
+ * The digest is then sent to A.
+ *
+ * @param {Number} challenge
+ * @param {String} cookie
+ * @returns {Buffer}
+ */
+exports.sendChallengeAck = function sendChallengeAck(challenge, cookie) {
+  let d = crypto.digest(challenge, cookie);
+  let buf = new Buffer(1 + 16);
+  let offset = 0;
+  buf.write('a', offset);
+  offset += 1;
   d.copy(buf, offset);
   return messageWrapper(buf);
 };

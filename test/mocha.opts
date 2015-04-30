@@ -1,4 +1,4 @@
+--require=env-test
+--recursive
 handshake
---recursive
 protocol
---recursive

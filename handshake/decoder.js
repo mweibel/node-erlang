@@ -24,7 +24,7 @@ exports.DecoderError = DecoderError;
 exports.recvStatus = function recvStatus(buf) {
   let offset = 0;
   let len = buf.readUInt16BE(offset);
-  if(len !== (buf.length-2) || len < 3) {
+  if(len !== (buf.length - 2) || len < 3) {
     throw new DecoderError('RECV_STATUS Invalid buffer length');
   }
   offset += 2;
@@ -49,11 +49,11 @@ exports.recvStatus = function recvStatus(buf) {
 exports.recvChallenge = function recvChallenge(buf) {
   let offset = 0;
   let len = buf.readUInt16BE(offset);
-  if(len !== (buf.length-2) || len <= 13) {
+  if(len !== (buf.length - 2) || len <= 13) {
     throw new DecoderError('RECV_CHALLENGE Invalid buffer length');
   }
   offset += 2;
-  let tag = buf.toString('utf8', offset, offset+1);
+  let tag = buf.toString('utf8', offset, offset + 1);
   if(tag !== 'n') {
     throw new DecoderError(util.format('RECV_CHALLENGE incorrect tag. Expected "n" got "%s".', tag));
   }
@@ -75,31 +75,63 @@ exports.recvChallenge = function recvChallenge(buf) {
 };
 
 /**
+ * Now A has generated a digest and its own challenge. Those are sent together in a package to B.
+ * @param {Buffer} buf
+ * @param {Number} expectedChallenge
+ * @param {String} cookie
+ * @returns {Number}
+ */
+exports.recvChallengeReply = function recvChallengeReply(buf, expectedChallenge, cookie) {
+  let offset = 0;
+  let len = buf.readUInt16BE(offset);
+  if(len !== (buf.length - 2) || len <= 3) {
+    throw new DecoderError('RECV_CHALLENGE_REPLY Invalid buffer length');
+  }
+  offset += 2;
+  let tag = buf.toString('utf8', offset, offset + 1);
+  if(tag !== 'r') {
+    throw new DecoderError(util.format('RECV_CHALLENGE_REPLY incorrect tag. Expected "r" got "%s".', tag));
+  }
+  offset += 1;
+  let challenge = buf.readUInt32BE(offset);
+  offset += 4;
+  let digest = buf.slice(offset);
+  let expectedDigest = crypto.digest(expectedChallenge, cookie);
+  if(!digest.equals(expectedDigest)) {
+    throw new DecoderError(util.format('RECV_CHALLENGE_REPLY invalid challenge received. ' +
+    'Expected "%s", actual "%s', digest.toString(), expectedChallenge.toString()));
+  }
+  return challenge;
+};
+
+/**
  * B checks that the digest received from A is correct and generates
  * a digest from the challenge received from A.
  * The digest is then sent to A.
  *
  * @param {Buffer} buf
  * @param {Number} expectedChallenge Challenge to match with the received challenge.
+ * @param {String} cookie
+ *
  * @returns {boolean} reply was correct.
  * @throws DecoderError
  */
 exports.recvChallengeAck = function recvChallengeAck(buf, expectedChallenge, cookie) {
   let offset = 0;
   let len = buf.readUInt16BE(offset);
-  if(len !== (buf.length-2) || len <= 3) {
-    throw new DecoderError('RECV_CHALLENGE_REPLY Invalid buffer length');
+  if(len !== (buf.length - 2) || len <= 3) {
+    throw new DecoderError('RECV_CHALLENGE_ACK Invalid buffer length');
   }
   offset += 2;
-  let tag = buf.toString('utf8', offset, offset+1);
+  let tag = buf.toString('utf8', offset, offset + 1);
   if(tag !== 'a') {
-    throw new DecoderError(util.format('RECV_CHALLENGE_REPLY incorrect tag. Expected "a" got "%s".', tag));
+    throw new DecoderError(util.format('RECV_CHALLENGE_ACK incorrect tag. Expected "a" got "%s".', tag));
   }
   offset += 1;
   let challenge = buf.slice(offset);
   let expectedDigest = crypto.digest(expectedChallenge, cookie);
   if(!challenge.equals(expectedDigest)) {
-    throw new DecoderError(util.format('RECV_CHALLENGE_REPLY invalid challenge received. ' +
+    throw new DecoderError(util.format('RECV_CHALLENGE_ACK invalid challenge received. ' +
     'Expected "%s", actual "%s', challenge.toString(), expectedChallenge.toString()));
   }
   return true;

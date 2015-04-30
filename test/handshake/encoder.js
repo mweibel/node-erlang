@@ -47,13 +47,12 @@ describe('encoder', function() {
   let challenge = 42;
   sinon.stub(crypto, 'generateChallenge').returns(challenge);
 
-  describe('#sendChallenge', function() {
+  describe('#sendChallenge()', function() {
     it('should create a valid SEND_CHALLENGE packet', function() {
-      let nameBuf = encoder.sendName(5, 'test@testhost');
       let name = 'test';
 
-      let buf = encoder.sendChallenge(nameBuf, name);
-      let baseLen = 2 + nameBuf.length;
+      let buf = encoder.sendChallenge(name);
+      let baseLen = 2;
       buf.length.should.equal(baseLen + 4 + Buffer.byteLength(name));
       buf.readUInt32BE(baseLen).should.equal(challenge);
       buf.toString('utf8', baseLen + 4).should.equal(name);
@@ -71,6 +70,19 @@ describe('encoder', function() {
       buf.toString('utf8', 2, 3).should.equal('r');
       buf.readUInt32BE(3).should.equal(sendChallenge);
       buf.slice(7).equals(crypto.digest(challenge, cookie)).should.equal(true);
+    });
+  });
+
+  describe('#sendChallengeAck()', function() {
+    it('should create a valid SEND_CHALLENGE_ACK packet', function() {
+      let cookie = 'testcookie';
+      let challenge = 42;
+      let buf = encoder.sendChallengeAck(challenge, cookie);
+
+      buf.length.should.equal(2 + 1 + 16);
+      buf.readUInt16BE(0).should.equal(1 + 16);
+      buf.toString('utf8', 2, 3).should.equal('a');
+      buf.slice(3).equals(crypto.digest(challenge, cookie)).should.equal(true);
     });
   });
 });
