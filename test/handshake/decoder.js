@@ -29,7 +29,7 @@ describe('decoder', function() {
     });
 
     it('should throw a DecoderError if packet is not with tag "s"', function() {
-      let tag = new Buffer('f');
+      let tag = new Buffer('fok');
       let buf = encoder.messageWrapper(tag);
       expect(function() {
         decoder.recvStatus(buf);
@@ -100,7 +100,8 @@ describe('decoder', function() {
     });
 
     it('should throw a DecoderError if packet is not with tag "n"', function() {
-      let tag = new Buffer('f');
+      let tag = new Buffer(14);
+      tag.write('f');
       let buf = encoder.messageWrapper(tag);
       expect(function() {
         decoder.recvChallenge(buf);
@@ -125,7 +126,8 @@ describe('decoder', function() {
     });
 
     it('should throw a DecoderError if packet is not with tag "r"', function() {
-      let tag = new Buffer('f');
+      let tag = new Buffer(4);
+      tag.write('f');
       let buf = encoder.messageWrapper(tag);
       expect(function() {
         decoder.recvChallengeReply(buf, 1, 'b');
@@ -160,7 +162,8 @@ describe('decoder', function() {
     });
 
     it('should throw a DecoderError if packet is not with tag "a"', function() {
-      let tag = new Buffer('f');
+      let tag = new Buffer(4);
+      tag.write('f');
       let buf = encoder.messageWrapper(tag);
       expect(function() {
         decoder.recvChallengeAck(buf, 1, 'b');

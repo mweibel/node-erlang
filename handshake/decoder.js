@@ -28,7 +28,7 @@ exports.recvStatus = function recvStatus(buf) {
     throw new DecoderError('RECV_STATUS Invalid buffer length');
   }
   offset += 2;
-  let tag = buf.toString('utf8', offset, offset+1);
+  let tag = buf.toString('utf8', offset, offset + 1);
   if(tag !== 's') {
     throw new DecoderError(util.format('RECV_STATUS incorrect tag. Expected "s" got "%s".', tag));
   }
