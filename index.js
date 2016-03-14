@@ -34,6 +34,8 @@ class Server extends EventEmitter {
    * @param {String} cookie Erlang cookie. Needs to be the same as on the target host.
    */
   constructor(nodeName, host, cookie) {
+    super();
+
     host = host || os.hostname();
     this.fullNodeName = nodeName + '@' + host;
     this.cookie = cookie;

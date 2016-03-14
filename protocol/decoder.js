@@ -7,8 +7,8 @@ let constants = require('./constants');
 
 class ProtocolDecoderError extends Error {
   constructor(message) {
+    super(message);
     this.name = 'ProtocolDecoderError';
-    this.message = message;
   }
 }
 exports.ProtocolDecoderError = ProtocolDecoderError;

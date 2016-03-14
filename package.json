@@ -34,6 +34,6 @@
     "sinon": "^1.14.1"
   },
   "dependencies": {
-    "epmd-client": "0.0.1"
+    "epmd-client": "0.0.2"
   }
 }
