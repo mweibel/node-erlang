@@ -9,8 +9,8 @@ let crypto = require('./crypto');
 
 class DecoderError extends Error {
   constructor(message) {
+    super(message);
     this.name = 'DecoderError';
-    this.message = message;
   }
 }
 exports.DecoderError = DecoderError;
