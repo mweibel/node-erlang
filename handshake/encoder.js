@@ -41,14 +41,15 @@ exports.sendName = function sendName(version, fullNodeName) {
   buf.writeUInt16BE(version, offset);
   offset += 2;
 
-  let flags = constants.FLAG_EXPORT_PTR_TAG;
-  flags |= constants.FLAG_EXTENDED_PIDS_PORTS;
+  let flags = constants.FLAG_PUBLISHED;
   flags |= constants.FLAG_EXTENDED_REFERENCES;
   flags |= constants.FLAG_DIST_MONITOR;
   flags |= constants.FLAG_FUN_TAGS;
   flags |= constants.FLAG_DIST_MONITOR_NAME;
   flags |= constants.FLAG_HIDDEN_ATOM_CACHE;
   flags |= constants.FLAG_NEW_FUN_TAGS;
+  flags |= constants.FLAG_EXTENDED_PIDS_PORTS;
+  flags |= constants.FLAG_EXPORT_PTR_TAG;
   flags |= constants.FLAG_BIT_BINARIES;
   flags |= constants.FLAG_NEW_FLOATS;
   flags |= constants.FLAG_UNICODE_IO;

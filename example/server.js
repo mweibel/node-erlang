@@ -53,6 +53,8 @@ class TestServer {
       let srv = new Server(self.name, self.host, cookie);
       srv.on('connect', function() {
         debug('connected');
+
+        srv.register();
       });
       srv.on('end', function() {
         debug('ended :(');

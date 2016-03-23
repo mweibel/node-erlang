@@ -41,6 +41,7 @@ class Server extends EventEmitter {
     this.cookie = cookie;
     this.challenge = crypto.generateChallenge();
     this.state = 'WaitForStatus';
+    this.remoteNodeName = null;
   }
 
   /**
@@ -60,6 +61,11 @@ class Server extends EventEmitter {
     this.conn.on('connect', this._onConnect.bind(this));
     this.conn.on('data', this._onData.bind(this));
     this.conn.on('end', this._onEnd.bind(this));
+  }
+
+  register() {
+    debug('Sending registration');
+    this._send(encoder.sendReg(this.cookie, this.remoteNodeName));
   }
 
   _send(buf) {
@@ -121,6 +127,8 @@ class Server extends EventEmitter {
     let obj = handshakeDecoder.recvChallenge(buf);
     debug('Received Challenge reply: %j', obj);
 
+    this.remoteNodeName = obj.nodeName;
+
     this.state = 'WaitForChallengeAck';
     this._send(handshakeEncoder.sendChallengeReply(obj.challenge, this.challenge, this.cookie));
   }
@@ -146,6 +154,10 @@ class Server extends EventEmitter {
    */
   _handleConnected(buf) {
     let msg = decoder.decode(buf);
+    if(msg === undefined) {
+      debug('not implemented yet.');
+      return;
+    }
     switch(msg.type) {
       case constants.TYPE_KEEPALIVE:
         this._send(encoder.sendKeepAlive());
