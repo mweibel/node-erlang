@@ -2,10 +2,10 @@
  * Encoder is used for sending packets to another
  * distributed erlang node.
  */
-'use strict';
+'use strict'
 
-let constants = require('./constants');
-let crypto = require('./crypto');
+let constants = require('./constants')
+let crypto = require('./crypto')
 
 /**
  * Precedes the buffer with a 2 byte length.
@@ -14,16 +14,16 @@ let crypto = require('./crypto');
  * @returns {Buffer}
  * @private
  */
-function messageWrapper(req) {
-  let baseLength = 2;
-  let buf = new Buffer(baseLength + req.length);
-  buf.writeUInt16BE(req.length, 0);
-  req.copy(buf, baseLength, 0);
+function messageWrapper (req) {
+  let baseLength = 2
+  let buf = new Buffer(baseLength + req.length)
+  buf.writeUInt16BE(req.length, 0)
+  req.copy(buf, baseLength, 0)
 
-  return buf;
+  return buf
 }
-if(process.env.NODE_ENV === 'test') {
-  exports.messageWrapper = messageWrapper;
+if (process.env.NODE_ENV === 'test') {
+  exports.messageWrapper = messageWrapper
 }
 
 /**
@@ -33,37 +33,37 @@ if(process.env.NODE_ENV === 'test') {
  * @param {String} fullNodeName NodeName@Host
  * @returns {Buffer}
  */
-exports.sendName = function sendName(version, fullNodeName) {
-  let buf = new Buffer(7 + Buffer.byteLength(fullNodeName));
-  let offset = 0;
-  buf.write('n', offset);
-  offset += 1;
-  buf.writeUInt16BE(version, offset);
-  offset += 2;
+exports.sendName = function sendName (version, fullNodeName) {
+  let buf = new Buffer(7 + Buffer.byteLength(fullNodeName))
+  let offset = 0
+  buf.write('n', offset)
+  offset += 1
+  buf.writeUInt16BE(version, offset)
+  offset += 2
 
-  let flags = constants.FLAG_PUBLISHED;
-  flags |= constants.FLAG_EXTENDED_REFERENCES;
-  flags |= constants.FLAG_DIST_MONITOR;
-  flags |= constants.FLAG_FUN_TAGS;
-  flags |= constants.FLAG_DIST_MONITOR_NAME;
-  flags |= constants.FLAG_HIDDEN_ATOM_CACHE;
-  flags |= constants.FLAG_NEW_FUN_TAGS;
-  flags |= constants.FLAG_EXTENDED_PIDS_PORTS;
-  flags |= constants.FLAG_EXPORT_PTR_TAG;
-  flags |= constants.FLAG_BIT_BINARIES;
-  flags |= constants.FLAG_NEW_FLOATS;
-  flags |= constants.FLAG_UNICODE_IO;
-  flags |= constants.FLAG_DIST_HDR_ATOM_CACHE;
-  flags |= constants.FLAG_SMALL_ATOM_TAGS;
-  flags |= constants.FLAG_UTF8_ATOMS;
-  flags |= constants.FLAG_MAP_TAG;
+  let flags = constants.FLAG_PUBLISHED
+  flags |= constants.FLAG_EXTENDED_REFERENCES
+  flags |= constants.FLAG_DIST_MONITOR
+  flags |= constants.FLAG_FUN_TAGS
+  flags |= constants.FLAG_DIST_MONITOR_NAME
+  flags |= constants.FLAG_HIDDEN_ATOM_CACHE
+  flags |= constants.FLAG_NEW_FUN_TAGS
+  flags |= constants.FLAG_EXTENDED_PIDS_PORTS
+  flags |= constants.FLAG_EXPORT_PTR_TAG
+  flags |= constants.FLAG_BIT_BINARIES
+  flags |= constants.FLAG_NEW_FLOATS
+  flags |= constants.FLAG_UNICODE_IO
+  flags |= constants.FLAG_DIST_HDR_ATOM_CACHE
+  flags |= constants.FLAG_SMALL_ATOM_TAGS
+  flags |= constants.FLAG_UTF8_ATOMS
+  flags |= constants.FLAG_MAP_TAG
 
-  buf.writeUInt32BE(flags, offset);
-  offset += 4;
-  buf.write(fullNodeName, offset);
+  buf.writeUInt32BE(flags, offset)
+  offset += 4
+  buf.write(fullNodeName, offset)
 
-  return messageWrapper(buf);
-};
+  return messageWrapper(buf)
+}
 
 /**
  * B sends a status message to A, which indicates if the connection is allowed.
@@ -71,14 +71,14 @@ exports.sendName = function sendName(version, fullNodeName) {
  * @param {String} status
  * @returns {Buffer}
  */
-exports.sendStatus = function sendStatus(status) {
-  let buf = new Buffer(1 + Buffer.byteLength(status));
-  let offset = 0;
-  buf.write('s', offset);
-  offset += 1;
-  buf.write(status, offset);
-  return messageWrapper(buf);
-};
+exports.sendStatus = function sendStatus (status) {
+  let buf = new Buffer(1 + Buffer.byteLength(status))
+  let offset = 0
+  buf.write('s', offset)
+  offset += 1
+  buf.write(status, offset)
+  return messageWrapper(buf)
+}
 
 /**
  * If the status was ok or ok_simultaneous,
@@ -87,15 +87,15 @@ exports.sendStatus = function sendStatus(status) {
  * @param {String} nodeName
  * @returns {Buffer}
  */
-exports.sendChallenge = function sendChallenge(nodeName) {
-  let buf = new Buffer(4 + Buffer.byteLength(nodeName));
-  let offset = 0;
-  buf.writeUInt32BE(crypto.generateChallenge(), offset);
-  offset += 4;
-  buf.write(nodeName, offset);
+exports.sendChallenge = function sendChallenge (nodeName) {
+  let buf = new Buffer(4 + Buffer.byteLength(nodeName))
+  let offset = 0
+  buf.writeUInt32BE(crypto.generateChallenge(), offset)
+  offset += 4
+  buf.write(nodeName, offset)
 
-  return messageWrapper(buf);
-};
+  return messageWrapper(buf)
+}
 
 /**
  * Now A has generated a digest and its own challenge.
@@ -106,17 +106,17 @@ exports.sendChallenge = function sendChallenge(nodeName) {
  * @param {String} cookie
  * @returns {Buffer}
  */
-exports.sendChallengeReply = function sendChallengeReply(recvChallenge, challenge, cookie) {
-  let d = crypto.digest(recvChallenge, cookie);
-  let buf = new Buffer(1 + 4 + 16);
-  let offset = 0;
-  buf.write('r', offset);
-  offset += 1;
-  buf.writeUInt32BE(challenge, offset);
-  offset += 4;
-  d.copy(buf, offset);
-  return messageWrapper(buf);
-};
+exports.sendChallengeReply = function sendChallengeReply (recvChallenge, challenge, cookie) {
+  let d = crypto.digest(recvChallenge, cookie)
+  let buf = new Buffer(1 + 4 + 16)
+  let offset = 0
+  buf.write('r', offset)
+  offset += 1
+  buf.writeUInt32BE(challenge, offset)
+  offset += 4
+  d.copy(buf, offset)
+  return messageWrapper(buf)
+}
 
 /**
  * B checks that the digest received from A is correct
@@ -127,12 +127,12 @@ exports.sendChallengeReply = function sendChallengeReply(recvChallenge, challeng
  * @param {String} cookie
  * @returns {Buffer}
  */
-exports.sendChallengeAck = function sendChallengeAck(challenge, cookie) {
-  let d = crypto.digest(challenge, cookie);
-  let buf = new Buffer(1 + 16);
-  let offset = 0;
-  buf.write('a', offset);
-  offset += 1;
-  d.copy(buf, offset);
-  return messageWrapper(buf);
-};
+exports.sendChallengeAck = function sendChallengeAck (challenge, cookie) {
+  let d = crypto.digest(challenge, cookie)
+  let buf = new Buffer(1 + 16)
+  let offset = 0
+  buf.write('a', offset)
+  offset += 1
+  d.copy(buf, offset)
+  return messageWrapper(buf)
+}
