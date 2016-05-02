@@ -3,7 +3,8 @@
  */
 'use strict'
 
-const erlang = require('erlang_js').Erlang
+const Parser = require('erlang-term-format')
+const parser = new Parser()
 const BitView = require('bit-buffer').BitView
 const debug = require('debug')('node-erlang:protocol:encoder')
 let constants = require('./constants')
@@ -120,9 +121,23 @@ exports.decode = function decode (buf) {
 
     debug('Number of found atom cache refs: %d', atomCacheRefs.refs.length)
 
-    erlang.binary_to_term(buf.slice(atomCacheRefs.len), function () {
-      console.log(arguments)
+    //console.log(buf.slice(offset+atomCacheRefs.len));
+
+    let ctrlMsg;
+    let msg;
+
+    let fullMsg = buf.slice(offset + atomCacheRefs.len)
+
+    let result = []
+    parser.on('readable', () => {
+      result.push(parser.read())
     })
+
+    //console.log(fullMsg)
+    parser.write(fullMsg)
+
+    const util = require('util')
+    console.log("decoded: ", util.inspect(result, {depth: null}))
 
     return {
       type: constants.TYPE_DISTRIBUTION_PROTOCOL,

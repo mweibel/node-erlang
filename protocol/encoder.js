@@ -5,7 +5,8 @@
 'use strict'
 
 let constants = require('./constants')
-const erlang = require('erlang_js').Erlang
+//const erlang = require('erlang_js').Erlang
+const erlang = require('erlang')
 
 function messageWrapper (req) {
   let baseLength = 4
@@ -37,24 +38,72 @@ function distributionHeader (req) {
 }
 
 exports.sendReg = function sendReg (cookie, nodeName) {
-  // let tuple = bert.tuple(6, bert.pid(bert.atom('server1'), 1, 0, 1), cookie, nodeName)
-  let tuple = [
-    6,
-    new erlang.OtpErlangPid(new erlang.OtpErlangAtom('server1', false), 1, 0, 1),
-    new erlang.OtpErlangAtom(cookie),
-    new erlang.OtpErlangAtom(nodeName)
-  ]
-  let ctrlMsg = erlang._term_to_binary(tuple)
-  let ctrlMsgLen = Buffer.byteLength(ctrlMsg, 'utf8')
 
-  // let msg = bert.encode(bert.tuple(bert.atom('$gen_cast'), bert.tuple('init_connect')))
-  // let msgLen = Buffer.byteLength(ctrlMsg, 'utf8')
+  let ctrlMsg = erlang.term_to_binary({
+    tuple: [
+      6,
+      {
+        pid: {
+          node: {atom: 'server1'},
+          id: 1,
+          serial: 0,
+          creation: 0
+        }
+      },
+      {atom: cookie},
+      {atom: nodeName}
+    ]
+  })
 
-  let buf = new Buffer(ctrlMsgLen /*+ msgLen*/)
+  // strip off the VERSION_MAGIC. Not sure why it's even there.
+  ctrlMsg = ctrlMsg.slice(1)
+  const ctrlMsgLen = Buffer.byteLength(ctrlMsg, 'binary')
+
+  let msg = erlang.term_to_binary({
+    tuple: [
+      {atom: '$gen_cast'},
+      {tuple: [
+        {atom: 'init_connect'},
+        {tuple: [
+          5,
+          110
+        ]},
+        {atom: 'server1'},
+        {tuple: [
+          {atom: 'locker'},
+          {atom: 'no_longer_a_pid'},
+          null,
+          {pid: {
+            node: 'server1',
+            id: 1,
+            serial: 0,
+            creation: 0
+          }}
+        ]}
+      ]}
+    ]
+  })
+  // strip off the VERSION_MAGIC. Not sure why it's even there.
+  msg = msg.slice(1)
+  const msgLen = Buffer.byteLength(msg, 'binary')
+
+  const Parser = require('erlang-term-format')
+  const parser = new Parser()
+  let result = []
+  parser.on('readable', () => {
+    result.push(parser.read())
+  })
+
+  let buf = new Buffer(ctrlMsgLen + msgLen)
   let offset = 0
   ctrlMsg.copy(buf, offset)
-  // offset += ctrlMsgLen + 1
-  // msg.copy(buf, offset)
+  offset += ctrlMsgLen + 1
+  msg.copy(buf, offset)
+
+  parser.write(msg)
+  const util = require('util')
+
+  console.log(util.inspect(result, {depth: null}))
 
   return messageWrapper(distributionHeader(buf))
 }
