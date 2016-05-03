@@ -28,6 +28,7 @@
     "babel-cli": "^6.8.0",
     "chai": "^3.5.0",
     "coveralls": "^2.11.2",
+    "cz-conventional-changelog": "^1.1.6",
     "debug": "^2.1.3",
     "env-test": "^1.0.0",
     "eslint": "^2.8.0",
@@ -45,5 +46,10 @@
     "epmd-client": "0.0.2",
     "erlang": "mweibel/erlang.js#new-master",
     "erlang-term-format": "^1.0.1"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }
