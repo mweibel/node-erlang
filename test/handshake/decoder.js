@@ -1,5 +1,5 @@
 /**
- * Encoder tests
+ * Decoder tests
  */
 'use strict'
 
