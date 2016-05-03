@@ -11,7 +11,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "standard",
-    "test": "mocha",
+    "test": "mocha -R spec test --bail",
     "coverage": "babel-node ./node_modules/istanbul/lib/cli.js cover _mocha --bail --report lcovonly -- -R spec",
     "coveralls": "cat ./coverage/lcov.info | coveralls -v"
   },
