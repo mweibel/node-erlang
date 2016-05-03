@@ -47,7 +47,7 @@ class TestServer {
         console.error(err)
         return
       }
-      console.log(node.data.name + ' listens on port ' + node.data.port)
+      debug('remote node <%s> listens on port <%s>', node.data.name, node.data.port)
 
       let srv = new Server(self.name, self.host, cookie)
       srv.on('connect', function () {
