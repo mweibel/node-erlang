@@ -31,7 +31,7 @@ function readFlags (numAtomCache, buf) {
   let flags = []
   let numFlags = 0
 
-  while(numFlags < numAtomCache) {
+  while (numFlags < numAtomCache) {
     flags.push(readFlag(bv, offset))
     numFlags += 1
     offset += 4
@@ -88,13 +88,68 @@ function readAtomCache (flags, num, buf) {
   }
 }
 
-exports.decode = function decode (buf) {
+/**
+ * Handles a parsed SEND_REG packet.
+ *
+ * @param {Object} ctrlMsg
+ * @param {Object} msg
+ * @param {Function} onParsed
+ */
+function handleReg(ctrlMsg, msg, onParsed) {
+  debug('Received SEND_REG packet')
+  onParsed({
+    type: constants.TYPE_REGISTRATION
+  })
+}
+
+/**
+ * Handles a parsed MONITOR_P packet.
+ *
+ * @param {Object}   ctrlMsg
+ * @param {Function} onParsed
+ */
+function handleMonitorProcess(ctrlMsg, onParsed) {
+  debug('Received MONITOR_P packet')
+  onParsed({
+    type: constants.TYPE_MONITOR_PROCESS
+  })
+}
+
+/**
+ * Handles a parsed packet.
+ *
+ * @param {{data: Object, flags: Object, atomCacheRefs: Object}} packet
+ * @param {Function} onParsed
+ */
+function handleParsed(packet, onParsed) {
+  const [ ctrlMsg, msg ] = packet.data
+  debug('Parsed control message %j', ctrlMsg)
+  debug('Parsed message %j', msg)
+
+  const [ operation ] = ctrlMsg.value.elements
+  switch (operation.value) {
+    case 6:
+      return handleReg(ctrlMsg, msg, onParsed)
+    case 19:
+      return handleMonitorProcess(ctrlMsg, onParsed)
+    default:
+      throw new ProtocolDecoderError(`Control message ${operation.value} not implemented.`)
+  }
+}
+
+/**
+ * Decode a packet
+ * @param {Buffer}   buf
+ * @param {Function} onParsed  Called when decoding is complete
+ * @returns {*}
+ */
+exports.decode = function decode (buf, onParsed) {
   let offset = 0
   const len = buf.readUInt32BE(offset)
   if (len === 0) {
-    return {
+    return onParsed({
       type: constants.TYPE_KEEPALIVE
-    }
+    })
   }
   offset += 4
 
@@ -106,7 +161,6 @@ exports.decode = function decode (buf) {
     // erl distribution protocol
     const numAtomCacheRefs = buf.readUInt8(offset)
     offset += 1
-
     debug('Number of atom cache refs: %d', numAtomCacheRefs)
 
     const flagLen = Math.floor(numAtomCacheRefs / 2 + 1)
@@ -114,35 +168,29 @@ exports.decode = function decode (buf) {
 
     const flags = readFlags(numAtomCacheRefs, buf.slice(offset, offset + flagLen))
     offset += Math.floor(numAtomCacheRefs / 2 + 1)
-
     debug('Number of found flags: %d. Using long atoms: %j', flags.flags.length, flags.longAtoms)
 
     const atomCacheRefs = readAtomCache(flags, numAtomCacheRefs, buf.slice(offset))
-
     debug('Number of found atom cache refs: %d', atomCacheRefs.refs.length)
-
-    //console.log(buf.slice(offset+atomCacheRefs.len));
-
-    let ctrlMsg;
-    let msg;
 
     let fullMsg = buf.slice(offset + atomCacheRefs.len)
 
     let result = []
-    parser.on('readable', () => {
+    const onReadable = () => {
       result.push(parser.read())
-    })
-
-    //console.log(fullMsg)
-    parser.write(fullMsg)
-
-    const util = require('util')
-    console.log("decoded: ", util.inspect(result, {depth: null}))
-
-    return {
-      type: constants.TYPE_DISTRIBUTION_PROTOCOL,
-      flags: flags
     }
+    parser.on('readable', onReadable)
+
+    console.log(fullMsg.toString('hex'))
+
+    return parser.write(fullMsg, () => {
+      parser.removeListener('readable', onReadable)
+      return handleParsed({
+        data: result,
+        flags: flags,
+        atomCacheRefs: atomCacheRefs
+      }, onParsed)
+    })
   }
 
   throw new ProtocolDecoderError('Unable to read message')

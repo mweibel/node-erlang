@@ -87,23 +87,11 @@ exports.sendReg = function sendReg (cookie, nodeName) {
   msg = msg.slice(1)
   const msgLen = Buffer.byteLength(msg, 'binary')
 
-  const Parser = require('erlang-term-format')
-  const parser = new Parser()
-  let result = []
-  parser.on('readable', () => {
-    result.push(parser.read())
-  })
-
   let buf = new Buffer(ctrlMsgLen + msgLen)
   let offset = 0
   ctrlMsg.copy(buf, offset)
   offset += ctrlMsgLen + 1
   msg.copy(buf, offset)
-
-  parser.write(msg)
-  const util = require('util')
-
-  console.log(util.inspect(result, {depth: null}))
 
   return messageWrapper(distributionHeader(buf))
 }

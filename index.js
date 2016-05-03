@@ -153,16 +153,20 @@ class Server extends EventEmitter {
    * @private
    */
   _handleConnected (buf) {
-    let msg = decoder.decode(buf)
-    if (msg === undefined) {
-      debug('not implemented yet.')
-      return
-    }
-    switch (msg.type) {
-      case constants.TYPE_KEEPALIVE:
-        this._send(encoder.sendKeepAlive())
-        break
-    }
+    decoder.decode(buf, (msg) => {
+      if (!msg) {
+        debug('msg not found')
+        return
+      }
+      switch (msg.type) {
+        case constants.TYPE_KEEPALIVE:
+          debug('received keepalive, echoing back')
+          this._send(encoder.sendKeepAlive())
+          break
+        default:
+          debug('msg %s not implemented yet', msg.type)
+      }
+    })
   }
 
   /**
