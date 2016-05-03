@@ -15,7 +15,7 @@ let decoder = require('../../handshake/decoder')
 let encoder = require('../../handshake/encoder')
 let constants = require('../../handshake/constants')
 
-describe('decoder', function () {
+describe('Handshake decoder', function () {
   describe('#recvStatus()', function () {
     it('should decode a valid RECV_STATUS "ok" packet', function () {
       let buf = encoder.sendStatus('ok')

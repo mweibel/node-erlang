@@ -14,7 +14,7 @@ let encoder = require('../../handshake/encoder')
 let constants = require('../../handshake/constants')
 let crypto = require('../../handshake/crypto')
 
-describe('encoder', function () {
+describe('Handshake encoder', function () {
   describe('#sendName()', function () {
     it('should create a valid SEND_NAME packet', function () {
       let version = constants.VERSION
