@@ -26,7 +26,7 @@ describe('Handshake encoder', function () {
       buf.readUInt16BE(0).should.equal(7 + nodeNameLen)
       buf.toString('utf8', 2, 3).should.equal('n')
       buf.readUInt16BE(3).should.equal(version)
-      buf.readUInt32BE(5).should.equal(229372)
+      buf.readUInt32BE(5).should.equal(229373)
       buf.toString('utf8', 9).should.equal(fullNodeName)
     })
   })
