@@ -1,7 +1,6 @@
 'use strict'
 
 let net = require('net')
-let os = require('os')
 let debug = require('debug')('node-erlang:example-server')
 let client = require('epmd-client')
 let Server = require('../')

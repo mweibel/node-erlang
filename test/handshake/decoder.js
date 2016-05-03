@@ -7,8 +7,9 @@ let mocha = require('mocha')
 let describe = mocha.describe
 let chai = require('chai')
 let expect = chai.expect
-let should = chai.should()
 let it = mocha.it
+
+chai.should()
 
 let decoder = require('../../handshake/decoder')
 let encoder = require('../../handshake/encoder')

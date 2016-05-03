@@ -93,7 +93,7 @@ class Server extends EventEmitter {
     recv('< %s', buf.inspect())
     try {
       this['_handle' + this.state](buf)
-    } catch(e) {
+    } catch (e) {
       debug('Error: %s', e)
       this.conn.end()
       this.emit('error', e)

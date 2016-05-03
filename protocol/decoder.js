@@ -95,7 +95,7 @@ function readAtomCache (flags, num, buf) {
  * @param {Object} msg
  * @param {Function} onParsed
  */
-function handleReg(ctrlMsg, msg, onParsed) {
+function handleReg (ctrlMsg, msg, onParsed) {
   debug('Received SEND_REG packet')
   onParsed({
     type: constants.TYPE_REGISTRATION
@@ -108,7 +108,7 @@ function handleReg(ctrlMsg, msg, onParsed) {
  * @param {Object}   ctrlMsg
  * @param {Function} onParsed
  */
-function handleMonitorProcess(ctrlMsg, onParsed) {
+function handleMonitorProcess (ctrlMsg, onParsed) {
   debug('Received MONITOR_P packet')
   onParsed({
     type: constants.TYPE_MONITOR_PROCESS
@@ -121,7 +121,7 @@ function handleMonitorProcess(ctrlMsg, onParsed) {
  * @param {{data: Object, flags: Object, atomCacheRefs: Object}} packet
  * @param {Function} onParsed
  */
-function handleParsed(packet, onParsed) {
+function handleParsed (packet, onParsed) {
   const [ ctrlMsg, msg ] = packet.data
   debug('Parsed control message %j', ctrlMsg)
   debug('Parsed message %j', msg)

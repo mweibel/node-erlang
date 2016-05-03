@@ -5,7 +5,6 @@
 'use strict'
 
 let constants = require('./constants')
-//const erlang = require('erlang_js').Erlang
 const erlang = require('erlang')
 
 function messageWrapper (req) {
@@ -38,7 +37,6 @@ function distributionHeader (req) {
 }
 
 exports.sendReg = function sendReg (cookie, nodeName) {
-
   let ctrlMsg = erlang.term_to_binary({
     tuple: [
       6,
