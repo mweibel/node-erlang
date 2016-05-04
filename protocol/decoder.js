@@ -101,7 +101,7 @@ function handleReg (ctrlMsg, msg, onParsed) {
   const [ , pid, cookie, nodeName ] = ctrlMsg.value.elements
 
   debug('Received SEND_REG packet')
-  onParsed({
+  onParsed(null, {
     type: constants.TYPE_REGISTRATION,
     pid: pid.value,
     cookie: cookie.value.atom,
@@ -117,7 +117,7 @@ function handleReg (ctrlMsg, msg, onParsed) {
  */
 function handleMonitorProcess (ctrlMsg, onParsed) {
   debug('Received MONITOR_P packet')
-  onParsed({
+  onParsed(null, {
     type: constants.TYPE_MONITOR_PROCESS
   })
 }
@@ -148,13 +148,17 @@ function handleParsed (packet, onParsed) {
  * Decode a packet
  * @param {Buffer}   buf
  * @param {Function} onParsed  Called when decoding is complete
+ *
+ * @throws ProtocolDecoderError If packet is not decodeable
+ * @throws RangeError If packet has the wrong size
+ *
  * @returns {*}
  */
 exports.decode = function decode (buf, onParsed) {
   let offset = 0
   const len = buf.readUInt32BE(offset)
   if (len === 0) {
-    return onParsed({
+    return onParsed(null, {
       type: constants.TYPE_KEEPALIVE
     })
   }
@@ -194,6 +198,9 @@ exports.decode = function decode (buf, onParsed) {
       result.push(parser.read())
     }
     parser.on('readable', onReadable)
+    parser.on('error', () => {
+      onParsed(new ProtocolDecoderError('Unable to decode message'))
+    })
 
     return parser.write(fullMsg, () => {
       parser.removeListener('readable', onReadable)
@@ -205,5 +212,5 @@ exports.decode = function decode (buf, onParsed) {
     })
   }
 
-  throw new ProtocolDecoderError('Unable to read message')
+  onParsed(new ProtocolDecoderError('Unable to read message'))
 }

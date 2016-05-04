@@ -45,7 +45,7 @@
     "bit-buffer": "0.0.3",
     "epmd-client": "0.0.2",
     "erlang": "mweibel/erlang.js#new-master",
-    "erlang-term-format": "^1.0.1"
+    "erlang-term-format": "^1.0.2"
   },
   "config": {
     "commitizen": {

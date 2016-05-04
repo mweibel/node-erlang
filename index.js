@@ -153,7 +153,11 @@ class Server extends EventEmitter {
    * @private
    */
   _handleConnected (buf) {
-    decoder.decode(buf, (msg) => {
+    decoder.decode(buf, (err, msg) => {
+      if (err) {
+        debug('error received: %s', err)
+        return
+      }
       if (!msg) {
         debug('msg not found')
         return
