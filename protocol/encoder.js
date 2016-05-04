@@ -16,14 +16,14 @@ function messageWrapper (req) {
   return buf
 }
 
-exports.sendKeepAlive = function sendKeepAlive () {
+exports.buildkeepAlive = function buildKeepAlive () {
   return messageWrapper(new Buffer(0))
 }
 
 function distributionHeader (req) {
-  let numAtomCacheRefs = 0
-  let baseLength = 3
-  let buf = new Buffer(baseLength + req.length)
+  const numAtomCacheRefs = 0
+  const baseLength = 3
+  const buf = new Buffer(baseLength + req.length)
   let offset = 0
   buf.writeUInt8(constants.VERSION, offset)
   offset += 1
@@ -36,7 +36,7 @@ function distributionHeader (req) {
   return buf
 }
 
-exports.sendReg = function sendReg (cookie, nodeName) {
+exports.buildSendReg = function buildSendReg (cookie, nodeName) {
   let ctrlMsg = erlang.term_to_binary({
     tuple: [
       6,
@@ -88,7 +88,7 @@ exports.sendReg = function sendReg (cookie, nodeName) {
   let buf = new Buffer(ctrlMsgLen + msgLen)
   let offset = 0
   ctrlMsg.copy(buf, offset)
-  offset += ctrlMsgLen + 1
+  offset += ctrlMsgLen
   msg.copy(buf, offset)
 
   return messageWrapper(distributionHeader(buf))

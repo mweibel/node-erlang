@@ -52,7 +52,7 @@ function readAtomCache (flags, num, buf) {
   let offset = 0
   let index = 0
 
-  do {
+  while (index < num) {
     const isNew = flags.flags[index].isNew
     if (!isNew) {
       index += 1
@@ -80,7 +80,7 @@ function readAtomCache (flags, num, buf) {
 
     offset += len
     index += 1
-  } while (index < num)
+  }
 
   return {
     refs: refs,
@@ -91,14 +91,21 @@ function readAtomCache (flags, num, buf) {
 /**
  * Handles a parsed SEND_REG packet.
  *
+ * FIXME: Do something with the msg param.
+ *
  * @param {Object} ctrlMsg
  * @param {Object} msg
  * @param {Function} onParsed
  */
 function handleReg (ctrlMsg, msg, onParsed) {
+  const [ , pid, cookie, nodeName ] = ctrlMsg.value.elements
+
   debug('Received SEND_REG packet')
   onParsed({
-    type: constants.TYPE_REGISTRATION
+    type: constants.TYPE_REGISTRATION,
+    pid: pid.value,
+    cookie: cookie.value.atom,
+    nodeName: nodeName.value.atom
   })
 }
 
@@ -163,25 +170,30 @@ exports.decode = function decode (buf, onParsed) {
     offset += 1
     debug('Number of atom cache refs: %d', numAtomCacheRefs)
 
-    const flagLen = Math.floor(numAtomCacheRefs / 2 + 1)
-    debug('Flag length in buffer: %d', flagLen)
+    let flags = []
+    let atomCacheRefs = []
 
-    const flags = readFlags(numAtomCacheRefs, buf.slice(offset, offset + flagLen))
-    offset += Math.floor(numAtomCacheRefs / 2 + 1)
-    debug('Number of found flags: %d. Using long atoms: %j', flags.flags.length, flags.longAtoms)
+    if (numAtomCacheRefs > 0) {
+      const flagLen = Math.floor(numAtomCacheRefs / 2 + 1)
+      debug('Flag length in buffer: %d', flagLen)
 
-    const atomCacheRefs = readAtomCache(flags, numAtomCacheRefs, buf.slice(offset))
-    debug('Number of found atom cache refs: %d', atomCacheRefs.refs.length)
+      flags = readFlags(numAtomCacheRefs, buf.slice(offset, offset + flagLen))
+      offset += Math.floor(numAtomCacheRefs / 2 + 1)
+      debug('Number of found flags: %d. Using long atoms: %j', flags.flags.length, flags.longAtoms)
 
-    let fullMsg = buf.slice(offset + atomCacheRefs.len)
+      atomCacheRefs = readAtomCache(flags, numAtomCacheRefs, buf.slice(offset))
+      debug('Number of found atom cache refs: %d', atomCacheRefs.refs.length)
+
+      offset += atomCacheRefs.len
+    }
+
+    const fullMsg = buf.slice(offset)
 
     let result = []
     const onReadable = () => {
       result.push(parser.read())
     }
     parser.on('readable', onReadable)
-
-    console.log(fullMsg.toString('hex'))
 
     return parser.write(fullMsg, () => {
       parser.removeListener('readable', onReadable)

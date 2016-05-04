@@ -65,7 +65,7 @@ class Server extends EventEmitter {
 
   register () {
     debug('Sending registration')
-    this._send(encoder.sendReg(this.cookie, this.remoteNodeName))
+    this._send(encoder.buildSendReg(this.cookie, this.remoteNodeName))
   }
 
   _send (buf) {
@@ -161,7 +161,7 @@ class Server extends EventEmitter {
       switch (msg.type) {
         case constants.TYPE_KEEPALIVE:
           debug('received keepalive, echoing back')
-          this._send(encoder.sendKeepAlive())
+          this._send(encoder.buildkeepAlive())
           break
         default:
           debug('msg %s not implemented yet', msg.type)
