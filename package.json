@@ -12,7 +12,7 @@
   "scripts": {
     "lint": "standard",
     "test": "mocha -R spec test --bail",
-    "coverage": "babel-node ./node_modules/istanbul/lib/cli.js cover _mocha --bail --report lcovonly -- -R spec",
+    "coverage": "babel-node ./node_modules/istanbul/lib/cli.js cover _mocha --bail --report lcovonly -- -R spec test",
     "coveralls": "cat ./coverage/lcov.info | coveralls -v"
   },
   "keywords": [
