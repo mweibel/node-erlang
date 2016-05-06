@@ -117,8 +117,14 @@ function handleReg (ctrlMsg, msg, onParsed) {
  */
 function handleMonitorProcess (ctrlMsg, onParsed) {
   debug('Received MONITOR_P packet')
+
+  const [ , fromPid, toProc, ref ] = ctrlMsg.value.elements
+
   onParsed(null, {
-    type: constants.TYPE_MONITOR_PROCESS
+    type: constants.TYPE_MONITOR_PROCESS,
+    fromPid: fromPid.value,
+    toProc: toProc.value,
+    ref: ref.value
   })
 }
 

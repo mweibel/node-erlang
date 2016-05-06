@@ -74,4 +74,54 @@ describe('Protocol decoder', () => {
       done()
     })
   })
+
+  it('should decode a MONITOR_P packet', (done) => {
+    const packet = encoder.buildMonitorProcess()
+
+    decoder.decode(packet, (err, msg) => {
+      expect(err).to.equal(null)
+
+      msg.should.deep.equal({
+        type: constants.TYPE_MONITOR_PROCESS,
+        fromPid: {
+          node: {
+            name: 'atom',
+            value: {
+              atom: 'server1',
+              len: 7
+            }
+          },
+          id: 1,
+          serial: 0,
+          creation: 0
+        },
+        toProc: {
+          node: {
+            name: 'atom',
+            value: {
+              atom: 'test',
+              len: 4
+            }
+          },
+          id: 1,
+          serial: 0,
+          creation: 0
+        },
+        ref: {
+          node: {
+            name: 'atom',
+            value: {
+              atom: 'test',
+              len: 4
+            }
+          },
+          creation: 0,
+          len: 3,
+          id: [1, 2, 3]
+        }
+      })
+
+      done()
+    })
+  })
 })

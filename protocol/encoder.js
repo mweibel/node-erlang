@@ -93,3 +93,39 @@ exports.buildSendReg = function buildSendReg (cookie, nodeName) {
 
   return messageWrapper(distributionHeader(buf))
 }
+
+exports.buildMonitorProcess = function buildMonitorProcess () {
+  let ctrlMsg = erlang.term_to_binary({
+    tuple: [
+      19,
+      {
+        pid: {
+          node: {atom: 'server1'},
+          id: 1,
+          serial: 0,
+          creation: 0
+        }
+      },
+      {
+        pid: {
+          node: {atom: 'test'},
+          id: 1,
+          serial: 0,
+          creation: 0
+        }
+      },
+      {
+        newReference: {
+          node: {atom: 'test'},
+          creation: 0,
+          ids: [1, 2, 3]
+        }
+      }
+    ]
+  })
+
+  // strip off the VERSION_MAGIC. Not sure why it's even there.
+  ctrlMsg = ctrlMsg.slice(1)
+
+  return messageWrapper(distributionHeader(ctrlMsg))
+}
